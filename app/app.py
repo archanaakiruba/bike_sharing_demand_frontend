@@ -16,7 +16,7 @@ import streamlit as st
 
 # >>>>> USER INTERFACE <<<<<
 # Header
-st.markdown("""### Bike Sharing Demand 🚲
+st.markdown("""### Bike Sharing Demand 😍
 ##### Predicting the Number of Rentals:
 """)
 
@@ -149,14 +149,15 @@ fig = px.choropleth_mapbox(gdf,
                            geojson=gdf.geometry,
                            locations=gdf.index,
                            color='rents_per_hour',
-                           color_continuous_scale='thermal',
+                           color_continuous_scale='speed',
                            range_color=(0, max_rental_per_day),
                            mapbox_style="carto-positron",
                            zoom=10,
-                           opacity=0.6,
+                           opacity=0.5,
                            center={"lat": 48.1451, "lon": 11.5820},
                            height=450,
-                           labels={'rents_per_hour': 'rents / hour', 'index': 'district'}
+                           labels={'rents_per_hour': '  🚲', 'index': '🏠'},
+                           title="Bike Rents per Hour"
                            )
 
 # Add the randomly generated points to the map
@@ -165,9 +166,9 @@ fig.add_trace(Scattermapbox(
     lon=points_gdf.geometry.x,
     mode='markers',
     marker=dict(
-        size=5,
-        color='red',
-        opacity=0.8
+        size=7,
+        color='#F54B4C',
+        opacity=1
     ),
     showlegend=False
 ))
