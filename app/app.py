@@ -18,7 +18,7 @@ st.markdown("""# Predicting the Number of Rentals
 # UI date
 picked_date = st.date_input(
     "🗓️ Select day: ",
-    datetime.date(2025, 7, 6))
+    datetime.date(2023, 6, 16))
 
 # UI time
 picked_time = st.slider('🚲 Select time:', 0, 23, 12)
@@ -69,6 +69,8 @@ get_n_rents(picked_time, district_polys)
 # Initiating GeoDataFrame
 gdf = GeoDataFrame(district_polys, crs="EPSG:4326", geometry='geo_polygon')
 
+max_rental_per_day = district_polys['n_rents'].apply(lambda x: max(x)).max()
+
 
 # >>>>> MAP <<<<<
 # Plot map with polygons
@@ -76,9 +78,9 @@ fig = px.choropleth_mapbox(gdf,
                            geojson=gdf.geometry,
                            locations=gdf.index,
                            color='rents_per_hour',
-                           color_continuous_scale='RdBu',
-                           range_color=(0, 100),
-                           mapbox_style="open-street-map", # carto-positron
+                           color_continuous_scale='sunset',
+                           range_color=(0, max_rental_per_day),
+                           mapbox_style="carto-positron", # carto-positron
                            zoom=10,
                            opacity=0.5,
                            center = {"lat": 48.1351, "lon": 11.5820})
