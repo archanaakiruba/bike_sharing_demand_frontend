@@ -1,78 +1,89 @@
-from streamlit_folium import st_folium
+from geopandas import GeoDataFrame
+from shapely import Polygon
 
 import datetime
-import folium
+import geopandas
 import numpy as np
+import pandas as pd
+import plotly.express as px
 import requests
 import streamlit as st
 
 
-
 # >>>>> USER INTERFACE <<<<<
-
 # Header
-st.markdown("""# Number of bikes rented
+st.markdown("""# Predicting the Number of Rentals
 ## Choose the day and time below""")
 
 # UI date
 picked_date = st.date_input(
     "🗓️ Select day: ",
-    datetime.date(2019, 7, 6))
+    datetime.date(2023, 6, 16))
 
 # UI time
-picked_time = st.slider('🚲 Select time:', 0, 24, 12)
+picked_time = st.slider('🚲 Select time:', 0, 23, 12)
 
 
 
-# >>>>> API REQUEST <<<<<
+# >>>>> API REQUESTS <<<<<
 
-# Datetime combined
-# rented_dt = datetime.combine(picked_date, picked_time)
+# GET Requests > /polygons
+url = 'http://localhost:8000/polygons'
+response = requests.get(url).json()
 
-# GET request
-# url = 'some_api_url'
-# params =    {
-#                 # 'rented_dt': rented_dt
-#             }
+districts = list(response.keys())
+index_values = districts
+district_polys = pd.DataFrame(index=index_values)
 
-# response = requests.get(url, params=params).json()
+# Function-converter coords to polygons
+def get_polygons(coords):
+    polygon = Polygon(coords)
+    return polygon
 
 
+# Mapping coordingates with districts
+district_polys['geo_polygon'] = district_polys.index.map(response)
+
+# Convert coordinates to polygons
+district_polys['geo_polygon'] = district_polys['geo_polygon'].apply(get_polygons)
+
+
+
+# GET Requests > /base_predict
+url = 'http://127.0.0.1:8000/base_predict'
+params = {'date': picked_date}
+response = requests.get(url, params=params).json()
+
+# Add number of rents from api
+district_polys['n_rents'] = district_polys.index.map(response)
+
+# Function get rents per hour column
+def get_n_rents(picked_time, district_polys):
+    district_polys['rents_per_hour'] = district_polys['n_rents'].apply(lambda x: x[picked_time])
+    return district_polys
+
+
+get_n_rents(picked_time, district_polys)
+
+
+# Initiating GeoDataFrame
+gdf = GeoDataFrame(district_polys, crs="EPSG:4326", geometry='geo_polygon')
+
+max_rental_per_day = district_polys['n_rents'].apply(lambda x: max(x)).max()
 
 
 # >>>>> MAP <<<<<
-map = folium.Map(location=[48.14, 11.58], zoom_start=11.5)
+# Plot map with polygons
+fig = px.choropleth_mapbox(gdf,
+                           geojson=gdf.geometry,
+                           locations=gdf.index,
+                           color='rents_per_hour',
+                           color_continuous_scale='sunset',
+                           range_color=(0, max_rental_per_day),
+                           mapbox_style="carto-positron", # carto-positron
+                           zoom=10,
+                           opacity=0.5,
+                           center = {"lat": 48.1351, "lon": 11.5820})
 
-cluster_centers = np.array([[48.12512424, 11.57744165],
-                            [48.16817174, 11.54119953],
-                            [48.17803669, 11.62262054],
-                            [48.12167802, 11.45414658],
-                            [48.17990781, 11.57788319],
-                            [48.12273717, 11.7195075 ],
-                            [48.25386796, 11.64324707],
-                            [48.14587391, 11.51193132],
-                            [48.14910962, 11.56111138],
-                            [48.13088106, 11.61293088],
-                            [47.90527218, 11.30435671],
-                            [48.06649158, 11.62329064],
-                            [48.09626698, 11.54173558],
-                            [48.12785765, 11.54511078],
-                            [48.15229305, 11.58422161]])
-
-clusters = folium.map.FeatureGroup()
-
-
-for lat, lon in zip(cluster_centers[:,0], cluster_centers[:,1]):
-    clusters.add_child(
-        folium.features.CircleMarker(
-            [lat, lon],
-            radius=7, # define how big you want the circle markers to be
-            color='yellow',
-            fill=True,
-            fill_color='blue',
-            fill_opacity=0.6
-        )
-    )
-
-map.add_child(clusters)
-st_data = st_folium(map, width=725)
+# fig.show()
+st.plotly_chart(fig, use_container_width=False, sharing="streamlit", theme="streamlit")
