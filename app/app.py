@@ -10,7 +10,6 @@ import requests
 import streamlit as st
 
 
-
 # >>>>> USER INTERFACE <<<<<
 # Header
 st.markdown("""# Number of bikes rented
