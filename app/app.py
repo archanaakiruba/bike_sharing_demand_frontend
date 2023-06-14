@@ -11,17 +11,18 @@ import streamlit as st
 
 # >>>>> USER INTERFACE <<<<<
 # Header
-st.markdown("""# Bike Sharing Demand 🚲
-### Predicting the Number of Rentals:
+st.markdown("""### Bike Sharing Demand 🚲
+##### Predicting the Number of Rentals:
 """)
+
 
 # UI date
 picked_date = st.date_input(
-    "Select Date 🗓️ : ",
+    "Pick Date 🗓️ : ",
     datetime.date(2023, 6, 17))
 
 # UI time
-picked_time = st.slider('Select Time ⌛️ :', 0, 23, 12)
+picked_time = st.slider('Pick Time ⌛️ :', 0, 23, 12)
 
 
 
@@ -87,12 +88,16 @@ fig = px.choropleth_mapbox(gdf,
                            geojson=gdf.geometry,
                            locations=gdf.index,
                            color='rents_per_hour',
-                           color_continuous_scale='sunset',
+                           color_continuous_scale='thermal', #'icefire', #'twilight', #'sunset',
                            range_color=(0, max_rental_per_day),
-                           mapbox_style="carto-positron", # carto-positron
+                           mapbox_style="carto-positron", #"stamen-watercolor", #"stamen-toner", #"stamen-terrain", #"carto-darkmatter", #"white-bg",
                            zoom=10,
-                           opacity=0.5,
-                           center = {"lat": 48.1351, "lon": 11.5820})
+                           opacity=0.6,
+                           center = {"lat": 48.1451, "lon": 11.5820},
+                           height=450,
+                           labels={'rents_per_hour': 'rents / hour', 'index': 'district'}
+                           )
 
 # fig.show()
+# map_placeholder = st.empty()  >>> map_placeholder.plotly_chart()
 st.plotly_chart(fig, use_container_width=False, sharing="streamlit", theme="streamlit")
