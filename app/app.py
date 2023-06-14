@@ -1,12 +1,17 @@
-from geopandas import GeoDataFrame
+from geopandas import GeoDataFrame, points_from_xy
+from plotly.graph_objects import Scattermapbox
 from shapely import Polygon
+from shapely.geometry import Point
+
 
 import datetime
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import plotly.express as px
 import requests
 import streamlit as st
+
 
 
 # >>>>> USER INTERFACE <<<<<
@@ -83,21 +88,89 @@ max_rental_per_day = district_polys['n_rents'].apply(lambda x: max(x)).max()
 
 
 # >>>>> MAP <<<<<
-# Plot map with polygons
+# # Plot map with polygons
+# fig = px.choropleth_mapbox(gdf,
+#                            geojson=gdf.geometry,
+#                            locations=gdf.index,
+#                            color='rents_per_hour',
+#                            color_continuous_scale='thermal', #'icefire', #'twilight', #'sunset',
+#                            range_color=(0, max_rental_per_day),
+#                            mapbox_style="carto-positron", #"stamen-watercolor", #"stamen-toner", #"stamen-terrain", #"carto-darkmatter", #"white-bg",
+#                            zoom=10,
+#                            opacity=0.6,
+#                            center = {"lat": 48.1451, "lon": 11.5820},
+#                            height=450,
+#                            labels={'rents_per_hour': 'rents / hour', 'index': 'district'}
+#                            )
+
+# # fig.show()
+# # map_placeholder = st.empty()  >>> map_placeholder.plotly_chart()
+# st.plotly_chart(fig, use_container_width=False, sharing="streamlit", theme="streamlit")
+
+
+########### BETA ###########
+
+
+# Create an empty GeoDataFrame to store the points
+points_gdf = GeoDataFrame()
+
+for index, row in gdf.iterrows():
+    # Extract the polygon and rent value for the current district
+    polygon = row['geo_polygon']
+    rent_per_hour = row['rents_per_hour']
+
+    # Calculate the number of points to generate based on the rent value
+    num_points = int(rent_per_hour)
+
+    # Generate random points within the polygon
+    points_within_polygon = []
+    min_x, min_y, max_x, max_y = polygon.bounds
+    while len(points_within_polygon) < num_points:
+        point_x = np.random.uniform(min_x, max_x)
+        point_y = np.random.uniform(min_y, max_y)
+        point = points_from_xy([point_x], [point_y], crs=gdf.crs)
+        if polygon.contains(point[0]):
+            points_within_polygon.append(point[0])
+
+    # Create a temporary GeoDataFrame to store the points within the current polygon
+    temp_gdf = GeoDataFrame(geometry=points_within_polygon)
+
+    # Add the rent_per_hour column with the same value for all points within the current polygon
+    temp_gdf['rents_per_hour'] = rent_per_hour
+
+    # Append the temporary GeoDataFrame to the main points GeoDataFrame
+    points_gdf = pd.concat([points_gdf, temp_gdf], ignore_index=True)
+
+
+
+
+# Plot map with polygons and points
 fig = px.choropleth_mapbox(gdf,
                            geojson=gdf.geometry,
                            locations=gdf.index,
                            color='rents_per_hour',
-                           color_continuous_scale='thermal', #'icefire', #'twilight', #'sunset',
+                           color_continuous_scale='thermal',
                            range_color=(0, max_rental_per_day),
-                           mapbox_style="carto-positron", #"stamen-watercolor", #"stamen-toner", #"stamen-terrain", #"carto-darkmatter", #"white-bg",
+                           mapbox_style="carto-positron",
                            zoom=10,
                            opacity=0.6,
-                           center = {"lat": 48.1451, "lon": 11.5820},
+                           center={"lat": 48.1451, "lon": 11.5820},
                            height=450,
                            labels={'rents_per_hour': 'rents / hour', 'index': 'district'}
                            )
 
-# fig.show()
-# map_placeholder = st.empty()  >>> map_placeholder.plotly_chart()
+# Add the randomly generated points to the map
+fig.add_trace(Scattermapbox(
+    lat=points_gdf.geometry.y,
+    lon=points_gdf.geometry.x,
+    mode='markers',
+    marker=dict(
+        size=5,
+        color='red',
+        opacity=0.8
+    ),
+    showlegend=False
+))
+
+# Display the map
 st.plotly_chart(fig, use_container_width=False, sharing="streamlit", theme="streamlit")
