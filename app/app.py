@@ -12,7 +12,7 @@ import streamlit as st
 
 # >>>>> USER INTERFACE <<<<<
 # Header
-st.markdown("""# Number of bikes rented
+st.markdown("""# Predicting the Number of Rentals
 ## Choose the day and time below""")
 
 # UI date
