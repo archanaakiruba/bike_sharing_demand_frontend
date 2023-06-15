@@ -2,6 +2,7 @@ from geopandas import GeoDataFrame, points_from_xy
 from plotly.graph_objects import Scattermapbox
 from shapely import Polygon
 from shapely.geometry import Point
+from datetime import datetime
 
 
 import datetime
@@ -11,6 +12,30 @@ import pandas as pd
 import plotly.express as px
 import requests
 import streamlit as st
+
+
+# Get Default DateTime
+def get_default_picker():
+    # datetime object containing current date and time
+    now = datetime.datetime.now()
+
+    # dd/mm/YY H:M:S
+    current_year = now.strftime("%Y")
+    current_month = now.strftime("%m")
+    next_day = (now + datetime.timedelta(days=1)).strftime("%d")
+    current_hour = now.strftime("%H")
+
+
+    default_picker = {"year": current_year, "month": current_month, "day": next_day, "hour": current_hour}
+    return default_picker
+
+
+default_picker = get_default_picker()
+default_year = int(default_picker['year'])
+default_month = int(default_picker['month'])
+default_day = int(default_picker['day'])
+
+default_time = int(default_picker['hour'])
 
 
 
@@ -24,10 +49,11 @@ st.markdown("""### Bike Sharing Demand 😍
 # UI date
 picked_date = st.date_input(
     "Pick Date 🗓️ : ",
-    datetime.date(2023, 6, 17))
+    datetime.date(default_year, default_month, default_day))
+if picked_date >
 
 # UI time
-picked_time = st.slider('Pick Time ⌛️ :', 0, 23, 12, format='%i:00')
+picked_time = st.slider('Pick Time ⌛️ :', 0, 23, default_time, format='%i:00')
 
 
 
