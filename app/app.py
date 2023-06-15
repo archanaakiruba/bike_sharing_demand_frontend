@@ -65,9 +65,6 @@ if picked_date > allowed_picker:
 
 
 
-
-
-
 # UI time
 picked_time = st.slider('Pick Time ⌛️ :', 0, 23, default_time, format='%i:00')
 
