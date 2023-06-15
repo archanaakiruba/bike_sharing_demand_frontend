@@ -2,6 +2,7 @@ from geopandas import GeoDataFrame, points_from_xy
 from plotly.graph_objects import Scattermapbox
 from shapely import Polygon
 from shapely.geometry import Point
+from pages.polygons import x_dist
 
 
 import datetime
@@ -27,7 +28,7 @@ picked_date = st.date_input(
     datetime.date(2023, 6, 17))
 
 # UI time
-picked_time = st.slider('Pick Time ⌛️ :', 0, 23, 12)
+picked_time = st.slider('Pick Time ⌛️ :', 0, 23, 12, format='%i:00')
 
 
 
