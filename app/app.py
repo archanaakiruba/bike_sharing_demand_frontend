@@ -34,7 +34,7 @@ picked_time = st.slider('Pick Time ⌛️ :', 0, 23, 12, format='%i:00')
 # >>>>> API REQUESTS <<<<<
 
 # GET Requests > /polygons
-url_poly = 'http://localhost:8000/polygons'
+url_poly = 'https://bikesharing-fpjb6aulhq-ew.a.run.app/polygons'
 response_poly = requests.get(url_poly).json()
 
 
@@ -55,7 +55,7 @@ district_polys['geo_polygon'] = district_polys['geo_polygon'].apply(get_polygons
 
 
 # GET Requests > /base_predict
-url = 'http://127.0.0.1:8000/base_predict'
+url = 'https://bikesharing-fpjb6aulhq-ew.a.run.app/base_predict'
 params = {'date': picked_date}
 response = requests.get(url, params=params).json()
 
