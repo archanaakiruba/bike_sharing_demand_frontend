@@ -63,11 +63,8 @@ if picked_date > allowed_picker:
     warning_msg.empty()
 
 
-
-
 # UI time
 picked_time = st.slider('Pick Time ⌛️ :', 0, 23, default_time, format='%i:00')
-
 
 
 # >>>>> API REQUESTS <<<<<
