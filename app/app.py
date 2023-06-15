@@ -1,13 +1,8 @@
-from geopandas import GeoDataFrame, points_from_xy
-from plotly.graph_objects import Scattermapbox
+from geopandas import GeoDataFrame
 from shapely import Polygon
-from shapely.geometry import Point
 from datetime import datetime
-import time
 
 import datetime
-import matplotlib.pyplot as plt
-import numpy as np
 import pandas as pd
 import plotly.express as px
 import requests
@@ -24,7 +19,7 @@ def get_default_allowed_pickers():
     current_month = now.strftime("%m")
     next_day = (now + datetime.timedelta(days=1)).strftime("%d")
     current_hour = now.strftime("%H")
-    allowed_picker = (now + datetime.timedelta(days=14)).date()
+    allowed_picker = (now + datetime.timedelta(days=16)).date()
 
     default_picker = {"year": current_year, "month": current_month, "day": next_day, "hour": current_hour}
     return default_picker, allowed_picker
@@ -37,8 +32,6 @@ default_day = int(default_picker['day'])
 
 default_time = int(default_picker['hour'])
 
-print(f"\nAllowed Picker: >>> {allowed_picker}")
-
 
 # >>>>> USER INTERFACE <<<<<
 # Header
@@ -47,20 +40,14 @@ st.markdown("""### Bike Sharing Demand 😍
 """)
 
 
+# UI Container
+
 # UI date
 picked_date = st.date_input(
-    "Pick Date 🗓️ : ",
-    datetime.date(default_year, default_month, default_day))
-
-print(f"ALLOWED PICKER TYPE: {type(allowed_picker)}")
-print(f"PICKED PICKER TYPE: {type(picked_date)}")
-
-if picked_date > allowed_picker:
-    picked_date = allowed_picker
-
-    warning_msg = st.warning(f"The current version of API returns upto 14 days prediction. The predicitoin below is for {allowed_picker}\nThis notification will disappear in 10 seconds.")
-    time.sleep(10)
-    warning_msg.empty()
+    "Pick Date 🗓️ (max. 15 days ahead): ",
+    datetime.date(default_year, default_month, default_day),
+    max_value=allowed_picker
+    )
 
 
 # UI time
@@ -68,7 +55,6 @@ picked_time = st.slider('Pick Time ⌛️ :', 0, 23, default_time, format='%i:00
 
 
 # >>>>> API REQUESTS <<<<<
-
 # GET Requests > /polygons
 url_poly = 'https://bikesharing-fpjb6aulhq-ew.a.run.app/polygons'
 response_poly = requests.get(url_poly).json()
