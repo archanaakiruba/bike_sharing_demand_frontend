@@ -3,7 +3,7 @@ from plotly.graph_objects import Scattermapbox
 from shapely import Polygon
 from shapely.geometry import Point
 from datetime import datetime
-
+import time
 
 import datetime
 import matplotlib.pyplot as plt
@@ -15,7 +15,7 @@ import streamlit as st
 
 
 # Get Default DateTime
-def get_default_picker():
+def get_default_allowed_pickers():
     # datetime object containing current date and time
     now = datetime.datetime.now()
 
@@ -24,19 +24,20 @@ def get_default_picker():
     current_month = now.strftime("%m")
     next_day = (now + datetime.timedelta(days=1)).strftime("%d")
     current_hour = now.strftime("%H")
-
+    allowed_picker = (now + datetime.timedelta(days=14)).date()
 
     default_picker = {"year": current_year, "month": current_month, "day": next_day, "hour": current_hour}
-    return default_picker
+    return default_picker, allowed_picker
 
 
-default_picker = get_default_picker()
+default_picker, allowed_picker = get_default_allowed_pickers()
 default_year = int(default_picker['year'])
 default_month = int(default_picker['month'])
 default_day = int(default_picker['day'])
 
 default_time = int(default_picker['hour'])
 
+print(f"\nAllowed Picker: >>> {allowed_picker}")
 
 
 # >>>>> USER INTERFACE <<<<<
@@ -50,7 +51,22 @@ st.markdown("""### Bike Sharing Demand 😍
 picked_date = st.date_input(
     "Pick Date 🗓️ : ",
     datetime.date(default_year, default_month, default_day))
-if picked_date >
+
+print(f"ALLOWED PICKER TYPE: {type(allowed_picker)}")
+print(f"PICKED PICKER TYPE: {type(picked_date)}")
+
+if picked_date > allowed_picker:
+    picked_date = allowed_picker
+
+    warning_msg = st.warning(f"The current version of API returns upto 14 days prediction. The predicitoin below is for {allowed_picker}\nThis notification will disappear in 10 seconds.")
+    time.sleep(10)
+    warning_msg.empty()
+
+
+
+
+
+
 
 # UI time
 picked_time = st.slider('Pick Time ⌛️ :', 0, 23, default_time, format='%i:00')
